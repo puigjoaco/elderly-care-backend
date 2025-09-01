@@ -2,9 +2,9 @@
   "name": "elderly-care-backend",
   "version": "1.0.0",
   "description": "Backend API for Elderly Care Tracking System",
-  "main": "index.js",
+  "main": "test-server.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node test-server.js",
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
