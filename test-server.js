@@ -18,8 +18,9 @@ const server = http.createServer((req, res) => {
   } else if (req.url === '/health') {
     res.end(JSON.stringify({
       status: 'OK',
-      service: 'Test Server',
-      timestamp: new Date().toISOString()
+      service: 'Elderly Care Backend',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
     }));
   } else {
     res.writeHead(404);
