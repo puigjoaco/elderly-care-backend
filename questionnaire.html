@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario de Salida - Validado Médicamente</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .timer {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #e5e7eb;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #667eea 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .section {
+            padding: 25px;
+            border-bottom: 1px solid #f3f4f6;
+            display: none;
+        }
+        .section.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-emoji {
+            font-size: 28px;
+        }
+        .question {
+            margin-bottom: 25px;
+        }
+        .question-label {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+        
+        /* Scale Options */
+        .scale-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .scale-option {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        .scale-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .scale-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+        .scale-option.green { border-color: #10b981; }
+        .scale-option.yellow { border-color: #f59e0b; }
+        .scale-option.orange { border-color: #f97316; }
+        .scale-option.red { border-color: #ef4444; }
+        .scale-option.selected.green { background: #10b98115; }
+        .scale-option.selected.yellow { background: #f59e0b15; }
+        .scale-option.selected.orange { background: #f9731615; }
+        .scale-option.selected.red { background: #ef444415; }
+        .scale-emoji {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        .scale-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* Face Scale */
+        .faces-scale {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+        }
+        .face-option {
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .face-option:hover {
+            transform: scale(1.2);
+            background: #f3f4f6;
+        }
+        .face-option.selected {
+            transform: scale(1.3);
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+        .face-emoji {
+            font-size: 48px;
+        }
+        .face-label {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        /* Counter */
+        .counter {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .counter-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .counter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        .counter-value {
+            font-size: 36px;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+        }
+        .counter-icon {
+            font-size: 32px;
+        }
+        
+        /* Input fields */
+        .input-number {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .input-text {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            resize: vertical;
+        }
+        
+        /* Photo capture */
+        .photo-capture {
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f9fafb;
+        }
+        .photo-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .photo-preview {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        /* Navigation */
+        .navigation {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .nav-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav-btn.prev {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        .nav-btn.next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .nav-btn.submit {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            flex: 1;
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Summary */
+        .summary {
+            padding: 25px;
+        }
+        .score-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .score-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .score-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .score-interpretation {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .alert-preview {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .alert-preview h3 {
+            color: #ef4444;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 Cuestionario de Salida</h1>
+            <p>Evaluación médica validada</p>
+            <div class="timer" id="timer">⏱️ 00:00</div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <!-- SECCIÓN 1: Signos Vitales -->
+        <div class="section active" id="section-1">
+            <h2 class="section-title">
+                <span class="section-emoji">🌡️</span>
+                Signos Vitales (30 segundos)
+            </h2>
+            
+            <div class="question">
+                <label class="question-label">
+                    Peso actual (kg) <span class="required">*</span>
+                </label>
+                <input type="number" class="input-number" id="weight" 
+                       placeholder="75.5" step="0.1" min="20" max="200">
+                <div class="photo-capture" style="margin-top:15px;">
+                    <button class="photo-btn" onclick="captureWeightPhoto()">
+                        📷 Foto de la báscula
+                    </button>
+                    <img class="photo-preview" id="weight-photo">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: Movilidad -->
+        <div class="section" id="section-2">
+            <h2 class="section-title">
+                <span class="section-emoji">🚶</span>
+                Movilidad - Índice Barthel (20 segundos)
+            </h2>
+            
+            <div class="question">
+                <label class="question-label">
+                    ¿Cómo caminó hoy? <span class="required">*</span>
+                </label>
+                <div class="scale-options">
+                    <div class="scale-option green" data-value="3" onclick="selectOption('walking', this)">
+                        <div class="scale-emoji">🚶</div>
+                        <div class="scale-label">👍 Solo</div>
+                    </div>
+                    <div class="scale-option yellow" data-value="2" onclick="selectOption('walking', this)">
+                        <div class="scale-emoji">🦯</div>
+                        <div class="scale-label">👌 Con ayuda</div>
+                    </div>
+                    <div class="scale-option orange" data-value="1" onclick="selectOption('walking', this)">
+                        <div class="scale-emoji">♿</div>
+                        <div class="scale-label">👎 Silla ruedas</div>
+                    </div>
+                    <div class="scale-option red" data-value="0" onclick="selectOption('walking', this)">
+                        <div class="scale-emoji">🛏️</div>
+                        <div class="scale-label">❌ No caminó</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <label class="question-label">
+                    ¿Fue al baño? <span class="required">*</span>
+                </label>
+                <div class="scale-options">
+                    <div class="scale-option green" data-value="2" onclick="selectOption('bathroom', this)">
+                        <div class="scale-label">✅ Solo</div>
+                    </div>
+                    <div class="scale-option yellow" data-value="1" onclick="selectOption('bathroom', this)">
+                        <div class="scale-label">⚠️ Con ayuda</div>
+                    </div>
+                    <div class="scale-option red" data-value="0" onclick="selectOption('bathroom', this)">
+                        <div class="scale-label">❌ Pañal/Cama</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: Nutrición -->
+        <div class="section" id="section-3">
+            <h2 class="section-title">
+                <span class="section-emoji">🍽️</span>
+                Nutrición - MNA (20 segundos)
+            </h2>
+            
+            <div class="question">
+                <label class="question-label">
+                    ¿Cuántas comidas completas? <span class="required">*</span>
+                </label>
+                <div class="counter">
+                    <button class="counter-btn" onclick="updateCounter('meals', -1)">−</button>
+                    <span class="counter-value" id="meals-value">3</span>
+                    <button class="counter-btn" onclick="updateCounter('meals', 1)">+</button>
+                    <span class="counter-icon">🍽️</span>
+                </div>
+            </div>
+
+            <div class="question">
+                <label class="question-label">
+                    Vasos de líquido (aprox) <span class="required">*</span>
+                </label>
+                <div class="counter">
+                    <button class="counter-btn" onclick="updateCounter('liquids', -1)">−</button>
+                    <span class="counter-value" id="liquids-value">6</span>
+                    <button class="counter-btn" onclick="updateCounter('liquids', 1)">+</button>
+                    <span class="counter-icon">💧</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4: Estado Mental -->
+        <div class="section" id="section-4">
+            <h2 class="section-title">
+                <span class="section-emoji">🧠</span>
+                Estado Mental - CAM (30 segundos)
+            </h2>
+            
+            <div class="question">
+                <label class="question-label">
+                    ¿Hubo momentos de confusión? <span class="required">*</span>
+                </label>
+                <div class="scale-options">
+                    <div class="scale-option green" data-value="0" onclick="selectOption('confusion', this)">
+                        <div class="scale-label">✅ No, lúcido todo el día</div>
+                    </div>
+                    <div class="scale-option yellow" data-value="1" onclick="selectOption('confusion', this)">
+                        <div class="scale-label">⚠️ Sí, algunos momentos</div>
+                    </div>
+                    <div class="scale-option red" data-value="2" onclick="selectOption('confusion', this)">
+                        <div class="scale-label">🔴 Sí, la mayor parte</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <label class="question-label">
+                    Estado de ánimo general <span class="required">*</span>
+                </label>
+                <div class="faces-scale">
+                    <div class="face-option" data-value="5" onclick="selectFace(this)">
+                        <div class="face-emoji">😄</div>
+                        <div class="face-label">Muy bien</div>
+                    </div>
+                    <div class="face-option" data-value="4" onclick="selectFace(this)">
+                        <div class="face-emoji">🙂</div>
+                        <div class="face-label">Bien</div>
+                    </div>
+                    <div class="face-option" data-value="3" onclick="selectFace(this)">
+                        <div class="face-emoji">😐</div>
+                        <div class="face-label">Normal</div>
+                    </div>
+                    <div class="face-option" data-value="2" onclick="selectFace(this)">
+                        <div class="face-emoji">😕</div>
+                        <div class="face-label">Triste</div>
+                    </div>
+                    <div class="face-option" data-value="1" onclick="selectFace(this)">
+                        <div class="face-emoji">😢</div>
+                        <div class="face-label">Muy triste</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 5: Resumen y Envío -->
+        <div class="section" id="section-summary">
+            <h2 class="section-title">
+                <span class="section-emoji">📊</span>
+                Resumen y Scores Médicos
+            </h2>
+            
+            <div class="summary">
+                <div class="score-card">
+                    <div class="score-title">🏥 Índice Barthel</div>
+                    <div class="score-value" id="barthel-score">75/100</div>
+                    <div class="score-interpretation">Dependencia moderada</div>
+                </div>
+                
+                <div class="score-card">
+                    <div class="score-title">🛏️ Escala Norton</div>
+                    <div class="score-value" id="norton-score">16/20</div>
+                    <div class="score-interpretation">Riesgo medio de úlceras</div>
+                </div>
+                
+                <div class="score-card">
+                    <div class="score-title">🍽️ MNA</div>
+                    <div class="score-value" id="mna-score">10/14</div>
+                    <div class="score-interpretation">Riesgo nutricional</div>
+                </div>
+                
+                <div class="alert-preview" id="alert-preview" style="display:none;">
+                    <h3>⚠️ Alertas que se enviarán:</h3>
+                    <ul id="alerts-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn prev" id="btn-prev" onclick="navigate(-1)" style="display:none;">
+                ← Anterior
+            </button>
+            <button class="nav-btn next" id="btn-next" onclick="navigate(1)">
+                Siguiente →
+            </button>
+            <button class="nav-btn submit" id="btn-submit" onclick="submitQuestionnaire()" style="display:none;">
+                ✅ Enviar Cuestionario
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Estado del cuestionario
+        const state = {
+            currentSection: 1,
+            totalSections: 5,
+            startTime: Date.now(),
+            answers: {
+                vitals: {},
+                mobility: {},
+                nutrition: { meals: 3, liquids: 6 },
+                mental: {},
+                skin: {}
+            }
+        };
+
+        // Timer
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timer').textContent = 
+                `⏱️ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        // Navigation
+        function navigate(direction) {
+            const currentSectionEl = document.getElementById(`section-${state.currentSection === 5 ? 'summary' : state.currentSection}`);
+            currentSectionEl.classList.remove('active');
+            
+            state.currentSection += direction;
+            
+            const newSectionEl = document.getElementById(`section-${state.currentSection === 5 ? 'summary' : state.currentSection}`);
+            newSectionEl.classList.add('active');
+            
+            // Update progress
+            const progress = (state.currentSection / state.totalSections) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            
+            // Update navigation buttons
+            document.getElementById('btn-prev').style.display = state.currentSection > 1 ? 'block' : 'none';
+            document.getElementById('btn-next').style.display = state.currentSection < 5 ? 'block' : 'none';
+            document.getElementById('btn-submit').style.display = state.currentSection === 5 ? 'block' : 'none';
+            
+            // Calculate scores if on summary
+            if (state.currentSection === 5) {
+                calculateScores();
+            }
+        }
+
+        // Select option
+        function selectOption(field, element) {
+            // Remove previous selection
+            element.parentNode.querySelectorAll('.scale-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selection
+            element.classList.add('selected');
+            
+            // Store value
+            const section = element.closest('.section').id.replace('section-', '');
+            const value = parseInt(element.dataset.value);
+            
+            if (section === '2') {
+                state.answers.mobility[field] = value;
+            } else if (section === '4') {
+                state.answers.mental[field] = value;
+            }
+        }
+
+        // Select face
+        function selectFace(element) {
+            document.querySelectorAll('.face-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            state.answers.mental.mood = parseInt(element.dataset.value);
+        }
+
+        // Update counter
+        function updateCounter(field, delta) {
+            const current = state.answers.nutrition[field];
+            const newValue = Math.max(0, Math.min(field === 'meals' ? 5 : 12, current + delta));
+            state.answers.nutrition[field] = newValue;
+            document.getElementById(`${field}-value`).textContent = newValue;
+        }
+
+        // Calculate medical scores
+        function calculateScores() {
+            // Get weight
+            state.answers.vitals.weight = parseFloat(document.getElementById('weight').value) || 0;
+            
+            // Barthel Score
+            const barthel = (
+                (state.answers.mobility.walking || 0) * 15 +
+                (state.answers.mobility.bathroom || 0) * 10 +
+                50 // Base points
+            );
+            document.getElementById('barthel-score').textContent = `${barthel}/100`;
+            
+            // Norton Score
+            const norton = 16; // Demo value
+            document.getElementById('norton-score').textContent = `${norton}/20`;
+            
+            // MNA Score
+            const mna = (
+                state.answers.nutrition.meals * 2 +
+                Math.min(state.answers.nutrition.liquids, 8)
+            );
+            document.getElementById('mna-score').textContent = `${mna}/14`;
+            
+            // Check for alerts
+            const alerts = [];
+            if (state.answers.mental.confusion === 2) {
+                alerts.push('Confusión severa detectada');
+            }
+            if (barthel < 60) {
+                alerts.push('Dependencia severa (Barthel < 60)');
+            }
+            
+            if (alerts.length > 0) {
+                document.getElementById('alert-preview').style.display = 'block';
+                document.getElementById('alerts-list').innerHTML = 
+                    alerts.map(a => `<li>${a}</li>`).join('');
+            }
+        }
+
+        // Submit questionnaire
+        async function submitQuestionnaire() {
+            const timeTaken = Math.floor((Date.now() - state.startTime) / 1000);
+            
+            alert(`✅ Cuestionario completado en ${Math.floor(timeTaken/60)}:${(timeTaken%60).toString().padStart(2,'0')}\n\nDatos guardados correctamente.`);
+            
+            // En producción, aquí se enviaría al servidor
+            console.log('Questionnaire data:', {
+                answers: state.answers,
+                time_taken_seconds: timeTaken
+            });
+        }
+
+        // Capture photo simulation
+        function captureWeightPhoto() {
+            // En producción, aquí se abriría la cámara nativa
+            document.getElementById('weight-photo').src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjEwMCIgeT0iMTAwIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjE5cHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+Rm90byBCw6FzY3VsYTwvdGV4dD48L3N2Zz4=';
+            document.getElementById('weight-photo').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

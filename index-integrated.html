@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Supervisión de Cuidados - Panel Integrado</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .status-item {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #10b981;
+            color: white;
+        }
+        .status-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .status-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 600;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .alert-warning {
+            background: #fed7aa;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .medication-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .medication-item {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            border-left: 4px solid #667eea;
+        }
+        .medication-critical {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .photo-preview {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .gps-status {
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+        .notification-badge {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        #panic-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏠 Sistema de Supervisión de Cuidados en Casa</h1>
+            <p>Panel de demostración con funcionalidades críticas integradas</p>
+            <div class="status-bar">
+                <span class="status-item status-active">✅ GPS Activo</span>
+                <span class="status-item status-active">📷 Cámara Protegida</span>
+                <span class="status-item status-active">💊 Alertas Activas</span>
+                <span class="status-item status-warning">🔔 Notificaciones: <span id="notif-count">0</span></span>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- GPS Attendance Control -->
+            <div class="card">
+                <h2>📍 Control de Asistencia GPS (30m radio)</h2>
+                
+                <div class="alert alert-warning">
+                    ⚠️ DEBE estar a menos de 30m de la casa del paciente
+                </div>
+
+                <div class="input-group">
+                    <label>Ubicación Actual:</label>
+                    <div class="gps-status">
+                        Lat: <span id="current-lat">Obteniendo...</span><br>
+                        Lng: <span id="current-lng">Obteniendo...</span><br>
+                        Distancia: <span id="distance">Calculando...</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-success" onclick="checkIn()">
+                    ✅ MARCAR ENTRADA
+                </button>
+                
+                <button class="btn btn-danger" onclick="checkOut()">
+                    🚪 MARCAR SALIDA (requiere cuestionario)
+                </button>
+
+                <div id="attendance-result"></div>
+            </div>
+
+            <!-- Camera-Only Photo Security -->
+            <div class="card">
+                <h2>📷 Sistema Anti-Fraude de Fotos</h2>
+                
+                <div class="alert alert-danger">
+                    🔒 SOLO se permiten fotos de CÁMARA en tiempo real
+                </div>
+
+                <div class="input-group">
+                    <label>Tipo de Foto:</label>
+                    <select id="photo-purpose">
+                        <option value="medication">Medicamento</option>
+                        <option value="meal">Comida</option>
+                        <option value="weight">Peso</option>
+                        <option value="attendance">Asistencia</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" onclick="capturePhoto()">
+                    📸 TOMAR FOTO (Solo Cámara)
+                </button>
+
+                <div id="photo-result"></div>
+                <img id="photo-preview" class="photo-preview" style="display:none;">
+            </div>
+
+            <!-- Medication Tracking -->
+            <div class="card">
+                <h2>💊 Control de Medicamentos</h2>
+                
+                <div class="alert alert-success">
+                    ⏰ Notificaciones escalonadas: 10min → 15min → 30min
+                </div>
+
+                <h3>Medicamentos Pendientes:</h3>
+                <div class="medication-list" id="medication-list">
+                    <div class="medication-item medication-critical">
+                        <strong>Escitalopram</strong> - 10mg<br>
+                        ⏰ 08:00 - CRÍTICO<br>
+                        <button class="btn btn-success btn-sm" onclick="administerMed('med1')">
+                            ✅ Administrar
+                        </button>
+                    </div>
+                    <div class="medication-item">
+                        <strong>Memantine</strong> - 20mg<br>
+                        ⏰ 20:00<br>
+                        <button class="btn btn-success btn-sm" onclick="administerMed('med2')">
+                            ✅ Administrar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="medication-result"></div>
+            </div>
+
+            <!-- Exit Questionnaire -->
+            <div class="card">
+                <h2>📋 Cuestionario de Salida (Obligatorio)</h2>
+                
+                <div class="input-group">
+                    <label>Peso del Paciente (kg):</label>
+                    <input type="number" id="patient-weight" placeholder="75.5" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label>Estado de Ánimo:</label>
+                    <select id="patient-mood">
+                        <option value="excellent">Excelente</option>
+                        <option value="good">Bueno</option>
+                        <option value="regular">Regular</option>
+                        <option value="bad">Malo</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Movilidad:</label>
+                    <select id="patient-mobility">
+                        <option value="independent">Independiente</option>
+                        <option value="assisted">Asistida</option>
+                        <option value="wheelchair">Silla de ruedas</option>
+                        <option value="bedridden">En cama</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Observaciones:</label>
+                    <textarea id="observations" style="width:100%; padding:10px; border-radius:8px;" rows="3"></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="completeQuestionnaire()">
+                    ✅ Completar Cuestionario
+                </button>
+            </div>
+
+            <!-- Security Audit Log -->
+            <div class="card">
+                <h2>🔒 Registro de Seguridad</h2>
+                <div id="security-log">
+                    <div class="alert alert-warning">
+                        📝 Últimos intentos de vulneración...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card">
+                <h2>🔔 Notificaciones Activas</h2>
+                <div id="notifications-list">
+                    <div class="alert alert-success">
+                        Sistema de notificaciones funcionando
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panic Button -->
+    <button id="panic-button" onclick="panicAlert()" title="BOTÓN DE PÁNICO">
+        🚨
+    </button>
+
+    <script>
+        // Configuración
+        const API_URL = 'http://localhost:3000';
+        let currentLocation = { lat: null, lng: null };
+        let currentUserId = 'demo-user-1';
+        let currentPatientId = 'demo-patient-1';
+
+        // Obtener ubicación actual
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation.lat = position.coords.latitude;
+                        currentLocation.lng = position.coords.longitude;
+                        document.getElementById('current-lat').textContent = currentLocation.lat.toFixed(6);
+                        document.getElementById('current-lng').textContent = currentLocation.lng.toFixed(6);
+                        
+                        // Calcular distancia simulada (demo)
+                        const distance = Math.random() * 50; // Demo: distancia aleatoria
+                        document.getElementById('distance').textContent = distance.toFixed(0) + 'm';
+                        
+                        if (distance > 30) {
+                            document.getElementById('distance').style.color = 'red';
+                        } else {
+                            document.getElementById('distance').style.color = 'green';
+                        }
+                    },
+                    (error) => {
+                        console.error('Error obteniendo ubicación:', error);
+                        // Usar ubicación de demo
+                        currentLocation.lat = -33.4489;
+                        currentLocation.lng = -70.6693;
+                    }
+                );
+            }
+        }
+
+        // Check In
+        async function checkIn() {
+            try {
+                const photo = await simulateCameraCapture();
+                
+                const response = await fetch(`${API_URL}/api/attendance/check-in`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        caregiver_id: currentUserId,
+                        patient_id: currentPatientId,
+                        shift_id: 'demo-shift-1',
+                        lat: currentLocation.lat || -33.4489,
+                        lng: currentLocation.lng || -70.6693,
+                        photo_base64: photo,
+                        photo_timestamp: new Date().toISOString()
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('attendance-result', 'success', 
+                        `✅ Entrada registrada a ${result.data.distance}m de la casa`);
+                } else {
+                    showAlert('attendance-result', 'danger', 
+                        `❌ ${result.message}`);
+                }
+            } catch (error) {
+                showAlert('attendance-result', 'danger', 'Error: ' + error.message);
+            }
+        }
+
+        // Check Out
+        async function checkOut() {
+            const weight = document.getElementById('patient-weight').value;
+            
+            if (!weight) {
+                showAlert('attendance-result', 'danger', 
+                    '❌ Debe completar el cuestionario antes de salir');
+                return;
+            }
+
+            try {
+                const photo = await simulateCameraCapture();
+                
+                const response = await fetch(`${API_URL}/api/attendance/check-out`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        attendance_id: 'demo-attendance-1',
+                        caregiver_id: currentUserId,
+                        patient_id: currentPatientId,
+                        lat: currentLocation.lat || -33.4489,
+                        lng: currentLocation.lng || -70.6693,
+                        photo_base64: photo,
+                        photo_timestamp: new Date().toISOString(),
+                        questionnaire: {
+                            patient_weight: parseFloat(weight),
+                            patient_mood: document.getElementById('patient-mood').value,
+                            patient_mobility: document.getElementById('patient-mobility').value,
+                            meals_given: 4,
+                            medications_given: 2,
+                            hygiene_completed: true,
+                            observations: document.getElementById('observations').value
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('attendance-result', 'success', 
+                        '✅ Salida registrada correctamente');
+                } else {
+                    showAlert('attendance-result', 'danger', 
+                        `❌ ${result.message}`);
+                }
+            } catch (error) {
+                showAlert('attendance-result', 'danger', 'Error: ' + error.message);
+            }
+        }
+
+        // Capture Photo
+        async function capturePhoto() {
+            const purpose = document.getElementById('photo-purpose').value;
+            
+            try {
+                const photo = await simulateCameraCapture();
+                
+                const response = await fetch(`${API_URL}/api/photos/validate`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-App-Token': 'demo-app-token' // Token de seguridad
+                    },
+                    body: JSON.stringify({
+                        photo_base64: photo,
+                        photo_timestamp: new Date().toISOString(),
+                        capture_source: 'camera', // CRÍTICO: Solo cámara permitida
+                        gps_lat: currentLocation.lat || -33.4489,
+                        gps_lng: currentLocation.lng || -70.6693,
+                        device_id: 'demo-device-1',
+                        purpose: purpose,
+                        user_id: currentUserId
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('photo-result', 'success', 
+                        `✅ Foto validada: ${result.data.photo_hash.substring(0, 8)}...`);
+                    // Mostrar preview
+                    document.getElementById('photo-preview').src = 'data:image/jpeg;base64,' + photo;
+                    document.getElementById('photo-preview').style.display = 'block';
+                } else {
+                    showAlert('photo-result', 'danger', 
+                        `🚫 ${result.message}`);
+                }
+            } catch (error) {
+                showAlert('photo-result', 'danger', 'Error: ' + error.message);
+            }
+        }
+
+        // Administer Medication
+        async function administerMed(medId) {
+            try {
+                const photo = await simulateCameraCapture();
+                
+                const response = await fetch(`${API_URL}/api/medications/administer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        medication_id: medId,
+                        caregiver_id: currentUserId,
+                        photo_base64: photo,
+                        photo_timestamp: new Date().toISOString(),
+                        photo_hash: 'demo-hash-' + Date.now(),
+                        gps_lat: currentLocation.lat || -33.4489,
+                        gps_lng: currentLocation.lng || -70.6693
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('medication-result', 'success', 
+                        '✅ Medicamento administrado correctamente');
+                } else {
+                    showAlert('medication-result', 'danger', 
+                        `❌ ${result.message}`);
+                }
+            } catch (error) {
+                showAlert('medication-result', 'danger', 'Error: ' + error.message);
+            }
+        }
+
+        // Panic Alert
+        async function panicAlert() {
+            if (!confirm('⚠️ ¿Activar BOTÓN DE PÁNICO?\n\nEsto notificará a TODOS los familiares inmediatamente.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/panic`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUserId,
+                        patient_id: currentPatientId,
+                        message: 'EMERGENCIA: Botón de pánico activado desde panel web',
+                        gps_lat: currentLocation.lat || -33.4489,
+                        gps_lng: currentLocation.lng || -70.6693
+                    })
+                });
+
+                const result = await response.json();
+                alert('🚨 ' + result.message);
+            } catch (error) {
+                alert('Error activando pánico: ' + error.message);
+            }
+        }
+
+        // Simulate camera capture (for demo)
+        function simulateCameraCapture() {
+            return new Promise((resolve) => {
+                // En una app real, aquí se abriría la cámara nativa
+                // Para demo, retornamos una imagen base64 simulada
+                setTimeout(() => {
+                    resolve('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+                }, 1000);
+            });
+        }
+
+        // Helper: Show Alert
+        function showAlert(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `alert alert-${type}`;
+            element.textContent = message;
+        }
+
+        // Load security logs
+        async function loadSecurityLogs() {
+            try {
+                const response = await fetch(`${API_URL}/api/security/audit`);
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    const logsHtml = result.data.slice(0, 5).map(log => `
+                        <div class="alert ${log.blocked ? 'alert-danger' : 'alert-warning'}">
+                            ${log.blocked ? '🚫' : '⚠️'} ${log.action}<br>
+                            <small>${log.reason}</small>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('security-log').innerHTML = logsHtml;
+                }
+            } catch (error) {
+                console.error('Error loading security logs:', error);
+            }
+        }
+
+        // Initialize
+        window.onload = () => {
+            getCurrentLocation();
+            setInterval(getCurrentLocation, 30000); // Update location every 30s
+            loadSecurityLogs();
+            setInterval(loadSecurityLogs, 10000); // Update logs every 10s
+        };
+    </script>
+</body>
+</html>
