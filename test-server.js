@@ -34,6 +34,11 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Test server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Ready to handle requests...`);
+  
+  // Start keep-alive service in production
+  if (process.env.NODE_ENV === 'production') {
+    require('./keep-alive')();
+  }
 });
 
 // Handle errors
